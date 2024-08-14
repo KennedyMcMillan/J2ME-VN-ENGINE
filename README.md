@@ -17,4 +17,4 @@ TODO:
 * Pause menu
 
 WARNING!
-All tests were conducted on Emulators. Working on REAL cell phones NOT guaranteed
+All tests were conducted on emulators. Working on REAL cell phones NOT guaranteed
