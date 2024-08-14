@@ -15,6 +15,7 @@ TODO:
 * Effect fade
 * Main menu
 * Pause menu
+* Saves
 
 WARNING!
 All tests were conducted on emulators. Working on REAL cell phones NOT guaranteed
