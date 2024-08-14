@@ -1,6 +1,6 @@
 # J2ME-VN-ENGINE
 
-This WORKED alpha version J2ME visual novel engine written with ChatGPT 4o!
+This WORKED alpha version visual novel engine for J2ME platform written with ChatGPT 4o!
 
 What can he do:
 * Play sounds/music in the following formats ".wav/.mid/.mp3"
