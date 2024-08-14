@@ -6,7 +6,7 @@ What can he do:
 * Play sounds/music in the following formats ".wav/.mid/.mp3"
 * "Dissolve" effect (J2ME not supported alpha channel, so there will be something similar)
 * A simple scripting language for writing scenes outside of code
-* Any textboxes (240x56)
+* Any textboxes (default texbox in scr 240x56 pixels)
 * Background & sprites
 
 TODO:
