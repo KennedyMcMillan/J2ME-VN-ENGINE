@@ -1,0 +1,13 @@
+img bg_one = /background1.png
+img bg_two = /background2.png
+msc intro_msc = /intro.mp3
+
+
+lbl first_label:
+scn bg_one wt dissolve
+text Hi, this is test vn engine on J2ME platform
+pl msc intro_msc
+text lessgo to bg two
+
+scn bg_two wt dissolve
+text Yay!
