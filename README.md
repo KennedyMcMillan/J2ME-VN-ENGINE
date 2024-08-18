@@ -8,11 +8,13 @@ What can he do:
 * A simple scripting language for writing scenes outside of code
 * Any textboxes (default textbox in scr 240x56 pixels)
 * Background & sprites
+* "Fade" effect without using alpha channel 
+* Vibration support
 
 TODO:
-* Vibration support
+~~* Vibration support~~
 * Choices menu & jumps on any lables
-* Effect fade
+~~* Fade effect~~
 * Main menu
 * Pause menu
 * Saves
