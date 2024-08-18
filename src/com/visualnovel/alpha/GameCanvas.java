@@ -12,7 +12,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 public class GameCanvas extends Canvas {
-    private Image currentBackground, textbox;
+    private Image currentBackground, nextBackground, textbox;
     private Hashtable images = new Hashtable(); // For storing images
     private Hashtable musics = new Hashtable(); // For storing music
     private Hashtable sounds = new Hashtable(); // For storing sound effects
@@ -22,8 +22,9 @@ public class GameCanvas extends Canvas {
     private int textY;
     private boolean isDissolve = false;
     private boolean isShake = false;
-    private boolean isVibrationOn = false; // flag for enable vibration
+    private boolean isFade = false;
     private int dissolveStep = 0;
+    private int fadeStep = 0;
     private int shakeOffsetX = 0, shakeOffsetY = 0;
     private Random random = new Random();
     private int shakeCounter = 0;
@@ -64,15 +65,17 @@ public class GameCanvas extends Canvas {
     private void processCommand(String command) {
         if (command.startsWith("scn ")) {
             String imageName = command.substring(4).trim();
-            currentBackground = (Image) images.get(imageName);
-
-            if (command.contains("and vibr_on")) {
-                startVibration(); // Включаем вибрацию, если она указана в команде
-            }
+            nextBackground = (Image) images.get(imageName);
         } else if (command.startsWith("wt ")) {
             String effect = command.substring(3).trim();
             if (effect.equals("dissolve")) {
                 isDissolve = true;
+            } else if (effect.equals("shake")) {
+                isShake = true;
+                // Trigger vibration when shake effect is used
+                Display.getDisplay().vibrate(200); // Vibrate for 200ms
+            } else if (effect.equals("fade")) {
+                isFade = true;
             }
         } else if (command.startsWith("show_image ")) {
             String imageName = command.substring(11).trim();
@@ -113,10 +116,6 @@ public class GameCanvas extends Canvas {
         }
     }
 
-    private void startVibration() {
-        Display.getDisplay(null).vibrate(500); // Вибрация на 500 мс
-    }
-
     protected void paint(Graphics g) {
         // Clear screen
         g.setColor(0, 0, 0);
@@ -148,6 +147,8 @@ public class GameCanvas extends Canvas {
             shakeEffect();
         } else if (isDissolve) {
             dissolveEffect(g);
+        } else if (isFade) {
+            fadeEffect(g);
         }
     }
 
@@ -200,35 +201,77 @@ public class GameCanvas extends Canvas {
         repaint();
     }
 
-    private void shakeEffect() {
-        if (shakeCounter < 20) { // Shake for 20 frames
-            shakeOffsetX = random.nextInt(10) - 5;
-            shakeOffsetY = random.nextInt(10) - 5;
-            shakeCounter++;
+    private void fadeEffect(Graphics g) {
+        // Basic fade effect implementation without alpha support
+        if (fadeStep < 10) { // Approximate number of steps for the fade effect
+            if (nextBackground != null) {
+                // Gradually replace pixels of the current background with the next one
+                int alpha = (fadeStep * 255) / 10; // Calculate transparency as a fraction of 255
+                for (int y = 0; y < getHeight(); y += 2) {
+                    for (int x = 0; x < getWidth(); x += 2) {
+                        if (random.nextInt(10) < alpha / 25) { // Decide which image's pixel to show
+                            g.drawImage(nextBackground, x, y, Graphics.TOP | Graphics.LEFT);
+                        } else {
+                            g.drawImage(currentBackground, x, y, Graphics.TOP | Graphics.LEFT);
+                        }
+                    }
+                }
+            }
+
+            // Black screen transition effect to increase new image visibility
+            g.setColor(0, 0, 0);
+            int coverage = (255 - fadeStep * 25); // Adjust black cover to unveil the new image
+            for (int i = 0; i < coverage; i++) {
+                g.drawLine(random.nextInt(getWidth()), random.nextInt(getHeight()), random.nextInt(getWidth()), random.nextInt(getHeight()));
+            }
+            fadeStep++;
         } else {
-            shakeOffsetX = 0;
-            shakeOffsetY = 0;
-            isShake = false;
-            shakeCounter = 0;
+            isFade = false;
+            fadeStep = 0;
+            currentBackground = nextBackground;
+            nextBackground = null;
+            advanceScene();
         }
         repaint();
+    }
+
+    private void shakeEffect() {
+        ifзапущен эффект тряски (shake), положение фона будет смещаться случайным образом в небольшом диапазоне, что создаёт эффект тряски. Также, когда этот эффект активирован, будет запускаться вибрация устройства для усиления эффекта.
+
+Вот продолжение и окончание кода:
+
+```java
+    private void shakeEffect() {
+        if (shakeCounter < 10) { // Number of shakes
+            shakeOffsetX = random.nextInt(10) - 5; // Shake horizontally
+            shakeOffsetY = random.nextInt(10) - 5; // Shake vertically
+            shakeCounter++;
+        } else {
+            isShake = false;
+            shakeCounter = 0;
+            shakeOffsetX = 0;
+            shakeOffsetY = 0;
+        }
+        repaint(); // Repaint the screen to apply the shake effect
     }
 
     private void advanceScene() {
-        sceneIndex++;
-        repaint();
+        if (nextBackground != null) {
+            currentBackground = nextBackground;
+            nextBackground = null;
+        }
     }
 
-    private void playMusic(String path) {
-        if (musicPlayer != null) {
-            stopMusic();
-        }
+    private void playMusic(String musicPath) {
+        stopMusic();
         try {
-            musicPlayer = Manager.createPlayer(getClass().getResourceAsStream(path), "audio/mpeg");
+            InputStream is = getClass().getResourceAsStream(musicPath);
+            musicPlayer = Manager.createPlayer(is, "audio/mpeg");
+            musicPlayer.setLoopCount(-1); // Loop music indefinitely
             musicPlayer.realize();
-            VolumeControl volumeControl = (VolumeControl) musicPlayer.getControl("VolumeControl");
-            if (volumeControl != null) {
-                volumeControl.setLevel(100); // Set volume level
+            VolumeControl vc = (VolumeControl) musicPlayer.getControl("VolumeControl");
+            if (vc != null) {
+                vc.setLevel(100); // Set volume to maximum
             }
             musicPlayer.start();
         } catch (Exception e) {
@@ -236,16 +279,21 @@ public class GameCanvas extends Canvas {
         }
     }
 
-    private void playSound(String path) {
-        if (soundPlayer != null) {
-            stopSound();
+    private void stopMusic() {
+        if (musicPlayer != null) {
+            musicPlayer.close();
+            musicPlayer = null;
         }
+    }
+
+    private void playSound(String soundPath) {
         try {
-            soundPlayer = Manager.createPlayer(getClass().getResourceAsStream(path), "audio/x-wav");
+            InputStream is = getClass().getResourceAsStream(soundPath);
+            soundPlayer = Manager.createPlayer(is, "audio/mpeg");
             soundPlayer.realize();
-            VolumeControl volumeControl = (VolumeControl) soundPlayer.getControl("VolumeControl");
-            if (volumeControl != null) {
-                volumeControl.setLevel(100); // Set volume level
+            VolumeControl vc = (VolumeControl) soundPlayer.getControl("VolumeControl");
+            if (vc != null) {
+                vc.setLevel(100); // Set volume to maximum
             }
             soundPlayer.start();
         } catch (Exception e) {
@@ -253,36 +301,14 @@ public class GameCanvas extends Canvas {
         }
     }
 
-    private void stopMusic() {
-        if (musicPlayer != null) {
-            try {
-                musicPlayer.stop();
-                musicPlayer.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            musicPlayer = null;
-        }
-    }
-
-    private void stopSound() {
-        if (soundPlayer != null) {
-            try {
-                soundPlayer.stop();
-                soundPlayer.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            soundPlayer = null;
-        }
-    }
-
     protected void keyPressed(int keyCode) {
-        int gameAction = getGameAction(keyCode);
-        if (gameAction == FIRE && !isDissolve && !isShake) {
-            isDissolve = true;
-            repaint();
-        }
+        // Implement interaction logic (e.g., advancing scenes on key press)
+        advanceScene();
+    }
+
+    protected void pointerPressed(int x, int y) {
+        // Implement interaction logic for touch input if necessary
+        advanceScene();
     }
 }
 
