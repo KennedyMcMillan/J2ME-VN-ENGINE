@@ -236,12 +236,6 @@ public class GameCanvas extends Canvas {
     }
 
     private void shakeEffect() {
-        ifзапущен эффект тряски (shake), положение фона будет смещаться случайным образом в небольшом диапазоне, что создаёт эффект тряски. Также, когда этот эффект активирован, будет запускаться вибрация устройства для усиления эффекта.
-
-Вот продолжение и окончание кода:
-
-```java
-    private void shakeEffect() {
         if (shakeCounter < 10) { // Number of shakes
             shakeOffsetX = random.nextInt(10) - 5; // Shake horizontally
             shakeOffsetY = random.nextInt(10) - 5; // Shake vertically
