@@ -12,6 +12,7 @@ What can he do:
 * Vibration support
 
 TODO:
+
 ~~* Vibration support~~
 * Choices menu & jumps on any lables
 ~~* Fade effect~~
